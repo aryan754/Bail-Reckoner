@@ -14,22 +14,10 @@ export default function Navbar() {
             </span>
           </a>
 
-          {/* Nav tabs */}
-          <nav className="hidden sm:flex items-center gap-0.5">
-            {['Analyzer', 'Precedents', 'Reports'].map((tab, i) => (
-              <a
-                key={tab}
-                href="#"
-                className={`px-3 py-1.5 text-sm rounded-md font-medium transition-colors no-underline ${
-                  i === 0
-                    ? 'text-brand bg-brand-light font-semibold'
-                    : 'text-ink-muted hover:text-ink hover:bg-inset'
-                }`}
-              >
-                {tab}
-              </a>
-            ))}
-          </nav>
+          {/* Current page indicator */}
+          <span className="hidden sm:inline-flex items-center px-3 py-1.5 text-sm rounded-md font-semibold text-brand bg-brand-light">
+            Case Analyzer
+          </span>
         </div>
 
         {/* Right */}

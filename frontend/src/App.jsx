@@ -87,17 +87,28 @@ export default function App() {
     localStorage.removeItem(HISTORY_KEY)
   }
 
+  const formRef = useRef(null)
+
+  const handleReset = () => {
+    setResult(null)
+    setError(null)
+    // Scroll back to top of form smoothly
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
+
   return (
     <div className="min-h-screen bg-canvas flex flex-col">
       <Navbar />
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <InputForm
-          onSubmit={handleSubmit}
-          loading={loading}
-          history={history}
-          onClearHistory={clearHistory}
-        />
+        <div ref={formRef}>
+          <InputForm
+            onSubmit={handleSubmit}
+            loading={loading}
+            history={history}
+            onClearHistory={clearHistory}
+          />
+        </div>
 
         {/* Error banner */}
         {error && (
@@ -116,7 +127,7 @@ export default function App() {
         {/* Result */}
         {result && (
           <div ref={resultRef}>
-            <ResultCard result={result} />
+            <ResultCard result={result} onReset={handleReset} />
           </div>
         )}
       </main>
@@ -132,7 +143,7 @@ export default function App() {
             ))}
           </div>
           <p className="text-xs text-ink-faint text-center">
-            Built for Smart India Hackathon · Bail Reckoner © 2025
+            {/* Built for Smart India Hackathon · Bail Reckoner © 2025 */}
           </p>
         </div>
 
