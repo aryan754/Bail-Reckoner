@@ -329,11 +329,7 @@ export default function InputForm({ onSubmit, loading, history = [], onClearHist
             </p>
           </div>
 
-          {/* ③ Disclaimer */}
-          <p className="text-2xs text-ink-faint leading-relaxed px-1">
-            AI Confidence Disclaimer: Recommendations are based on historical data.
-            Final judicial discretion remains with the presiding officer.
-          </p>
+
         </div>
 
       </div>

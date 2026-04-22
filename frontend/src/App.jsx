@@ -122,14 +122,25 @@ export default function App() {
       </main>
 
       <footer className="border-t border-border bg-white mt-auto">
+        {/* Links + copyright */}
         <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-5">
             {['Legal Terms', 'Privacy Policy', 'Contact Support'].map((link) => (
-              <a key={link} href="#" className="text-xs text-ink-faint hover:text-ink-muted transition-colors font-medium no-underline">{link}</a>
+              <a key={link} href="#" className="text-xs text-ink-faint hover:text-ink-muted transition-colors font-medium no-underline">
+                {link}
+              </a>
             ))}
           </div>
           <p className="text-xs text-ink-faint text-center">
             Built for Smart India Hackathon · Bail Reckoner © 2025
+          </p>
+        </div>
+
+        {/* AI disclaimer — pinned at the very bottom */}
+        <div className="border-t border-border bg-inset py-2.5 px-6">
+          <p className="text-center text-2xs text-ink-faint max-w-3xl mx-auto">
+            <span className="font-semibold text-ink-muted">AI Confidence Disclaimer:</span>{' '}
+            Recommendations are based on historical data. Final judicial discretion remains with the presiding officer.
           </p>
         </div>
       </footer>
