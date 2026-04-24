@@ -27,10 +27,12 @@ function saveHistory(items) {
 
 // ── App ────────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [result, setResult]   = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState(null)
-  const [history, setHistory] = useState(loadHistory)  // real localStorage history
+  const [result, setResult]               = useState(null)
+  const [loading, setLoading]             = useState(false)
+  const [error, setError]                 = useState(null)
+  const [history, setHistory]             = useState(loadHistory)  // real localStorage history
+  const [reasoning, setReasoning]         = useState(null)
+  const [reasoningLoading, setReasoningLoading] = useState(false)
   const resultRef = useRef(null)
 
   // Keep localStorage in sync whenever history changes
@@ -38,14 +40,36 @@ export default function App() {
     saveHistory(history)
   }, [history])
 
+  // ── Non-blocking reasoning fetch ─────────────────────────────────────────────
+  const fetchReasoning = async (formData, decision) => {
+    setReasoningLoading(true)
+    setReasoning(null)
+    try {
+      const { data } = await axios.post(
+        `${API_URL}/reason`,
+        { ...formData, decision },
+        { timeout: 30000 }
+      )
+      setReasoning(data.reasoning)
+    } catch {
+      setReasoning('Reasoning could not be generated at this time.')
+    } finally {
+      setReasoningLoading(false)
+    }
+  }
+
   const handleSubmit = async (formData) => {
     setLoading(true)
     setError(null)
     setResult(null)
+    setReasoning(null)
 
     try {
       const { data } = await axios.post(`${API_URL}/predict`, formData, { timeout: 60000 })
       setResult(data)
+
+      // Fire reasoning fetch in the background — non-blocking
+      fetchReasoning(formData, data.decision)
 
       // Build a history entry from the form data + prediction result
       const caseRef = formData.case_number?.trim()
@@ -127,7 +151,12 @@ export default function App() {
         {/* Result */}
         {result && (
           <div ref={resultRef}>
-            <ResultCard result={result} onReset={handleReset} />
+            <ResultCard
+              result={result}
+              onReset={handleReset}
+              reasoning={reasoning}
+              reasoningLoading={reasoningLoading}
+            />
           </div>
         )}
       </main>

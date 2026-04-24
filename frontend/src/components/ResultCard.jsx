@@ -1,5 +1,22 @@
 import React from 'react'
 
+// ── Skeleton loader ────────────────────────────────────────────────────────────
+function ReasoningSkeleton() {
+  return (
+    <div className="space-y-2 animate-pulse" aria-label="Loading reasoning…">
+      <div className="h-3 bg-gray-200 rounded w-full" />
+      <div className="h-3 bg-gray-200 rounded w-11/12" />
+      <div className="h-3 bg-gray-200 rounded w-10/12" />
+      <div className="h-3 bg-gray-200 rounded w-full mt-3" />
+      <div className="h-3 bg-gray-200 rounded w-9/12" />
+      <div className="h-3 bg-gray-200 rounded w-11/12" />
+      <div className="h-3 bg-gray-200 rounded w-full mt-3" />
+      <div className="h-3 bg-gray-200 rounded w-10/12" />
+    </div>
+  )
+}
+
+// ── Confidence bar ─────────────────────────────────────────────────────────────
 function ConfidenceBar({ pct, granted }) {
   const [width, setWidth] = React.useState(0)
   React.useEffect(() => {
@@ -27,7 +44,8 @@ function ConfidenceBar({ pct, granted }) {
   )
 }
 
-export default function ResultCard({ result, onReset }) {
+// ── ResultCard ─────────────────────────────────────────────────────────────────
+export default function ResultCard({ result, onReset, reasoning, reasoningLoading }) {
   const { decision, confidence, label } = result
   const granted = decision === 'Bail Granted'
 
@@ -69,31 +87,70 @@ export default function ResultCard({ result, onReset }) {
             </div>
           </div>
 
-          {/* Bar */}
+          {/* Confidence bar */}
           <ConfidenceBar pct={confidence} granted={granted} />
 
-          {/* Detail cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-            <div className="bg-inset rounded-lg p-4">
-              <p className="text-xs font-semibold text-ink uppercase tracking-widest mb-2">
-                Model Interpretation
-              </p>
-              <p className="text-sm text-ink-muted leading-relaxed">
-                {granted
-                  ? 'The BERT classifier finds no significant impediment to bail based on the current case parameters and historical precedents within Indian law.'
-                  : 'The BERT classifier identifies elevated risk markers suggesting judicial custody is appropriate pending investigation and trial.'}
-              </p>
+          {/* ── Groq AI Legal Reasoning ───────────────────────────────────────── */}
+          <div className="mt-6 rounded-lg border border-border overflow-hidden">
+            {/* Section header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-inset border-b border-border">
+              <div className="flex items-center gap-2">
+                {/* Scales-of-justice icon */}
+                <svg
+                  className="w-4 h-4 text-brand shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 3v18M3 9l9-6 9 6" />
+                  <path d="M5 9l-2 6h4L5 9zm14 0l-2 6h4l-2-6z" />
+                  <path d="M3 21h18" />
+                </svg>
+                <p className="text-xs font-semibold text-ink uppercase tracking-widest">
+                  Legal Reasoning
+                </p>
+              </div>
+              {/* Groq attribution badge */}
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-medium bg-white border border-border text-ink-faint">
+                <svg className="w-2.5 h-2.5 text-brand" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="12" r="10" />
+                </svg>
+                Powered by Groq AI
+              </span>
             </div>
 
-            <div className="border border-border rounded-lg p-4">
-              <p className="text-xs font-semibold text-rejected uppercase tracking-widest mb-2">
-                ⚠ Legal Disclaimer
-              </p>
-              <p className="text-xs text-ink-muted leading-relaxed">
-                This is an AI-generated decision-support metric only. It does not constitute legal counsel or a binding judicial order.
-                Final authority rests with the presiding magistrate.
-              </p>
+            {/* Reasoning body */}
+            <div className="px-4 py-4">
+              {reasoningLoading ? (
+                <ReasoningSkeleton />
+              ) : reasoning ? (
+                <div className="space-y-3">
+                  {reasoning.split('\n\n').filter(Boolean).map((para, i) => (
+                    <p key={i} className="text-sm text-ink-muted leading-relaxed">
+                      {para.trim()}
+                    </p>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-ink-faint italic">
+                  Reasoning unavailable.
+                </p>
+              )}
             </div>
+          </div>
+
+          {/* Legal disclaimer */}
+          <div className="mt-4 border border-border rounded-lg p-4">
+            <p className="text-xs font-semibold text-rejected uppercase tracking-widest mb-2">
+              ⚠ Legal Disclaimer
+            </p>
+            <p className="text-xs text-ink-muted leading-relaxed">
+              This is an AI-generated decision-support metric only. It does not constitute legal counsel or a binding judicial order.
+              Final authority rests with the presiding magistrate.
+            </p>
           </div>
 
           {/* Actions */}

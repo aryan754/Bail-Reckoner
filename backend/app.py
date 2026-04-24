@@ -2,7 +2,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from transformers import pipeline
+from groq import Groq
+from dotenv import load_dotenv
 import logging
+import os
+
+load_dotenv()  # loads GROQ_API_KEY from backend/.env
 
 # ── Logging ────────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +35,14 @@ async def load_model():
     logger.info("Model loaded successfully.")
 
 
+# ── Groq Client ────────────────────────────────────────────────────────────────
+def get_groq_client() -> Groq:
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY is not configured on the server.")
+    return Groq(api_key=api_key)
+
+
 # ── Request / Response Schemas ─────────────────────────────────────────────────
 class PredictRequest(BaseModel):
     fir_details: str
@@ -48,6 +61,14 @@ class PredictResponse(BaseModel):
     decision: str
     confidence: float
     label: str
+
+
+class ReasonRequest(PredictRequest):
+    decision: str            # "Bail Granted" | "Bail Rejected"
+
+
+class ReasonResponse(BaseModel):
+    reasoning: str
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -90,6 +111,32 @@ def apply_rule_overrides(req: PredictRequest, label: str, score: float):
     return decision, round(score * 100, 2), label
 
 
+def build_reasoning_prompt(req: ReasonRequest) -> str:
+    crime_part = f"Crime Type: {req.crime_type}\n" if req.crime_type else ""
+    return f"""You are a judicial AI assistant specializing in Indian bail law.
+
+Case Details:
+- FIR Details: {req.fir_details}
+- IPC Sections: {req.ipc_sections}
+{crime_part}- Accused Name: {req.accused_name}
+- Age: {req.age}
+- Gender: {req.gender}
+- Criminal History: {req.criminal_history}
+- Severity Rating: {req.severity}
+- Evidence Strength: {req.evidence_strength}
+- Flight Risk: {req.flight_risk}
+
+Bail Decision: {req.decision}
+
+Provide a structured legal reasoning (3 concise paragraphs) that justifies the above bail decision.
+In your reasoning:
+1. Assess the accused's profile (age, criminal history, flight risk) and how it influences the decision.
+2. Evaluate the nature and severity of the alleged offence, referencing the relevant IPC sections.
+3. Weigh the evidence strength and public interest, citing applicable principles from Indian bail jurisprudence such as the Arnesh Kumar guidelines or Satender Kumar Antil v. CBI (2022) where relevant.
+
+Use formal legal language. Be concise and factual. Do NOT add any preamble, headings, or bullet points — output only the three paragraphs as plain prose."""
+
+
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 @app.get("/")
 def health_check():
@@ -112,3 +159,42 @@ def predict(req: PredictRequest):
     logger.info(f"Result → {decision} ({confidence}%) [{label}]")
 
     return PredictResponse(decision=decision, confidence=confidence, label=label)
+
+
+@app.post("/reason", response_model=ReasonResponse)
+def reason(req: ReasonRequest):
+    """
+    Calls Groq LLM to generate a structured legal justification for the bail decision.
+    """
+    logger.info(f"Generating reasoning for: {req.accused_name} → {req.decision}")
+
+    client = get_groq_client()
+    prompt = build_reasoning_prompt(req)
+
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a senior judicial AI assistant trained on Indian criminal law. "
+                        "You produce precise, formal, and legally grounded bail reasoning. "
+                        "You never fabricate case law — only cite real, well-known precedents."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            model="llama-3.3-70b-versatile",
+            temperature=0.3,
+            max_tokens=600,
+        )
+        reasoning_text = chat_completion.choices[0].message.content.strip()
+        logger.info("Groq reasoning generated successfully.")
+        return ReasonResponse(reasoning=reasoning_text)
+
+    except Exception as e:
+        logger.error(f"Groq API error: {e}")
+        raise HTTPException(status_code=502, detail=f"Reasoning service error: {str(e)}")
