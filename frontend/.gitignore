@@ -1,0 +1,111 @@
+# ─── Python / Backend ────────────────────────────────────────────────────────
+
+# Virtual environment
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Bytecode & caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Type checkers
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# HuggingFace model cache (downloaded at runtime — never commit large model files)
+*.safetensors
+*.bin
+*.ot
+model_cache/
+hf_cache/
+
+# ─── Node / Frontend ─────────────────────────────────────────────────────────
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+frontend/dist/
+frontend/build/
+
+# Vite
+.vite/
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+
+# Local env files (contain API keys, URLs, secrets)
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Keep the example env template if it exists
+!.env.example
+
+# ─── IDE & Editor ────────────────────────────────────────────────────────────
+
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.iml
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Lock files (keep package-lock.json but ignore yarn/pnpm if unused)
+yarn.lock
+pnpm-lock.yaml
+
+# Optional: local Docker overrides
+docker-compose.override.yml
